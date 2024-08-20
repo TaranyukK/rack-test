@@ -8,7 +8,8 @@ class Time
       params = Rack::Utils.parse_nested_query(env['QUERY_STRING'])
       requested_formats = params['format']&.split(',') || []
 
-      formatter = TimeFormatter.call(requested_formats)
+      formatter = TimeFormatter.new(requested_formats)
+      formatter.call
       if formatter.valid?
         respond(200, formatter.time_string, env)
       else
