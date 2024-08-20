@@ -8,7 +8,15 @@ class TimeFormatter
     'second' => '%S',
   }.freeze
 
-  attr_reader :errors, :valid_formats
+  Result = Struct.new(:time_string, :errors) do
+    def valid?
+      errors.empty?
+    end
+
+    def invalid_string
+      "Invalid formats: [#{errors.join(', ')}]"
+    end
+  end
 
   def initialize(format_params)
     @format_params = format_params
@@ -18,20 +26,8 @@ class TimeFormatter
 
   def call
     resolve_formats
-  end
-
-  def valid?
-    @errors.empty?
-  end
-
-  def time_string
-    return '' unless valid?
-
-    Time.now.strftime(@resolved_formats.join('-'))
-  end
-
-  def invalid_string
-    "Invalid formats: [#{@errors.join(', ')}]"
+    time_string = Time.now.strftime(@resolved_formats.join('-')) if @errors.empty?
+    Result.new(time_string, @errors)
   end
 
   private
