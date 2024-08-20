@@ -4,17 +4,15 @@ class Time
   end
 
   def call(env)
-    @env = env
-
     if env['PATH_INFO'] == '/time'
       params = Rack::Utils.parse_nested_query(env['QUERY_STRING'])
       requested_formats = params['format']&.split(',') || []
 
-      formatter = TimeFormatter.new(requested_formats)
-      if formatter.errors.empty?
-        respond(200, formatter.formatted_time, env)
+      formatter = TimeFormatter.call(requested_formats)
+      if formatter.valid?
+        respond(200, formatter.time_string, env)
       else
-        respond(400, "Unknown time format [#{formatter.errors.join(', ')}]", env)
+        respond(400, formatter.invalid_string, env)
       end
     else
       respond(404, 'Not Found', env)

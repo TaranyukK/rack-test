@@ -1,5 +1,3 @@
-
-
 class TimeFormatter
   TIME_FORMATS = {
     'year' => '%Y',
@@ -10,32 +8,41 @@ class TimeFormatter
     'second' => '%S',
   }.freeze
 
-  attr_reader :errors
+  attr_reader :errors, :valid_formats
 
   def initialize(format_params)
     @format_params = format_params
-    @valid_formats, @errors = resolve_formats
+    @valid_formats = []
+    @errors = []
   end
 
-  def formatted_time
-    format_string = @valid_formats.map { |format| TIME_FORMATS[format] }.join('-')
-    Time.now.strftime(format_string)
+  def call
+    resolve_formats
+  end
+
+  def valid?
+    @errors.empty?
+  end
+
+  def time_string
+    return '' unless valid?
+
+    Time.now.strftime(@valid_formats.join('-'))
+  end
+
+  def invalid_string
+    "Invalid formats: #{@errors.join(', ')}"
   end
 
   private
 
   def resolve_formats
-    valid_formats = []
-    errors = []
-
     @format_params.each do |format|
       if TIME_FORMATS.key?(format)
-        valid_formats << format
+        @valid_formats << TIME_FORMATS[format]
       else
-        errors << format
+        @errors << format
       end
     end
-
-    [valid_formats, errors]
   end
 end
